@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BuildSmart | Construction Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Correct Flask static CSS link -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>🏗️ BuildSmart</h2>
+        </div>
+        <div class="sidebar-content">
+            <div class="status-badge">System: Active</div>
+            <p>Professional construction documentation tool.</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <header>
+            <h1>Site Report Generator</h1>
+            <p>Convert field observations into structured reports.</p>
+        </header>
+
+        <div class="workspace-grid">
+
+            <!-- Input Section -->
+            <section class="card">
+                <h3>Field Notes</h3>
+
+                <label for="doc-type">Document Type</label>
+                <select id="doc-type">
+                    <option>Daily Site Report</option>
+                    <option>Safety Observation</option>
+                    <option>Material Log</option>
+                </select>
+
+                <label for="notes">Input Notes</label>
+                <textarea id="notes" placeholder="e.g. Concrete pour completed on Slab A..."></textarea>
+
+                <button id="generate-btn" class="btn-generate">
+                    Process Report
+                </button>
+            </section>
+
+            <!-- Output Section -->
+            <section class="card">
+                <h3>Standardized Output</h3>
+
+                <div id="outputBox" class="output-preview">
+                    Awaiting input...
+                </div>
+
+                <button id="export-btn" class="btn-export" disabled>
+                    Export to PDF
+                    </button>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- Script Section -->
+<script>
+let downloadUrl = null;
+
+const generateBtn = document.getElementById("generate-btn");
+const exportBtn = document.getElementById("export-btn");
+
+generateBtn.addEventListener("click", async function() {
+
+    const notes = document.getElementById("notes").value;
+    const docType = document.getElementById("doc-type").value;
+
+    if (!notes.trim()) {
+        alert("Please enter field notes.");
+        return;
+    }
+
+    document.getElementById("outputBox").innerText = "Generating report...";
+    exportBtn.disabled = true;
+
+    try {
+        const response = await fetch("/generate-report", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                notes: notes,
+                docType: docType
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Server error");
+        }
+
+        const data = await response.json();
+
+        document.getElementById("outputBox").innerText = data.report;
+
+        // ✅ Store download URL from backend
+        downloadUrl = data.download_url;
+
+        // ✅ Enable export button
+        exportBtn.disabled = false;
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById("outputBox").innerText =
+            "Error generating report. Check backend server.";
+    }
+
+});
+
+// 🔥 Export Button Click
+exportBtn.addEventListener("click", function () {
+    if (downloadUrl) {
+        window.location.href = downloadUrl;
+    }
+});
+</script>
+
+
+</body>
+</html>
