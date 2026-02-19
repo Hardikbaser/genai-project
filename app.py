@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_cors import CORS
 from google import genai
@@ -11,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # 🔐 Store API key securely in environment variable in real projects
-client = genai.Client(api_key="AIzaSyDU9yP1G30td0igXFPcGVigkhuHAyfkxxo")
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Folder to store generated reports
 OUTPUT_FOLDER = "generated_reports"
